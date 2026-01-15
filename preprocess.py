@@ -10,20 +10,23 @@ _nlp_instance = None
 def get_nlp():
     global _nlp_instance
     if _nlp_instance is None:
+        # Priority 1: Direct module load (best for Streamlit Cloud with requirements.txt)
         try:
-            _nlp_instance = spacy.load("es_core_news_sm")
-        except OSError:
-            # Fallback only if package install failed
-            print("Downloading 'es_core_news_sm' model...")
+            import es_core_news_sm
+            _nlp_instance = es_core_news_sm.load()
+        except ImportError:
+            # Priority 2: Standard spacy load
             try:
-                subprocess.check_call([sys.executable, "-m", "spacy", "download", "es_core_news_sm"])
                 _nlp_instance = spacy.load("es_core_news_sm")
-            except Exception as e:
-                print(f"Error downloading model: {e}")
-                # If download fails, we can't do much. 
-                # Maybe return a blank model to avoid crash but results will be bad.
-                raise e
-                
+            except OSError:
+                print("Model not found. Downloading...")
+                # Last resort download (might fail permission in Cloud)
+                try:
+                    subprocess.check_call([sys.executable, "-m", "spacy", "download", "es_core_news_sm"])
+                    _nlp_instance = spacy.load("es_core_news_sm")
+                except Exception as e:
+                    raise e
+                    
     return _nlp_instance
 
 # Pre-defined phrase replacements for normalization
