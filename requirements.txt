@@ -7,4 +7,4 @@ scikit-learn>=1.2.0
 torch>=2.0.0
 matplotlib>=3.7.0
 seaborn>=0.12.0
-https://github.com/explosion/spacy-models/releases/download/es_core_news_sm-3.5.0/es_core_news_sm-3.5.0.tar.gz#egg=es_core_news_sm
+requests

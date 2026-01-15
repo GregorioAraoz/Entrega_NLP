@@ -1,9 +1,13 @@
 import re
 import pandas as pd
 import spacy
+import os
+import tarfile
+import requests
 
 # Lazy loading setup
 _nlp_instance = None
+MODEL_URL = "https://github.com/explosion/spacy-models/releases/download/es_core_news_sm-3.5.0/es_core_news_sm-3.5.0.tar.gz"
 
 def get_nlp():
     global _nlp_instance
@@ -12,11 +16,34 @@ def get_nlp():
             import es_core_news_sm
             _nlp_instance = es_core_news_sm.load()
         except ImportError:
+            # Manual download and load from path logic (Bypasses pip/permission issues)
+            # Structure in tar.gz: es_core_news_sm-3.5.0/es_core_news_sm/es_core_news_sm-3.5.0
+            extract_path = "es_core_news_sm-3.5.0"
+            model_path = os.path.join(extract_path, "es_core_news_sm", "es_core_news_sm-3.5.0")
+            
+            if not os.path.exists(model_path):
+                print("Downloading language model manually (Streamlit Cloud workaround)...")
+                try:
+                    response = requests.get(MODEL_URL, stream=True)
+                    if response.status_code == 200:
+                        with open("model.tar.gz", "wb") as f:
+                            for chunk in response.iter_content(chunk_size=1024):
+                                f.write(chunk)
+                        
+                        print("Extracting model...")
+                        with tarfile.open("model.tar.gz", "r:gz") as tar:
+                            tar.extractall(path=".")
+                    else:
+                        raise OSError("Failed to download model file.")
+                except Exception as e:
+                     raise OSError(f"Manual download failed: {e}")
+            
             try:
-                _nlp_instance = spacy.load("es_core_news_sm")
-            except OSError:
-                raise OSError("Model 'es_core_news_sm' not found. Ensure it is in requirements.txt")
-                    
+                _nlp_instance = spacy.load(model_path)
+            except OSError as e:
+                # Cleanup if corrupt
+                raise OSError(f"Could not load model from {model_path}. Error: {e}")
+
     return _nlp_instance
 
 # Pre-defined phrase replacements for normalization
