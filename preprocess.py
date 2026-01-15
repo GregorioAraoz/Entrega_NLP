@@ -15,7 +15,14 @@ def get_nlp():
             print("Downloading 'es_core_news_sm' model...")
             from spacy.cli import download
             download("es_core_news_sm")
-            _nlp_instance = spacy.load("es_core_news_sm")
+            
+            # Allow time for FS update or try direct import
+            try:
+                import es_core_news_sm
+                _nlp_instance = es_core_news_sm.load()
+            except ImportError:
+                _nlp_instance = spacy.load("es_core_news_sm")
+                
     return _nlp_instance
 
 # Pre-defined phrase replacements for normalization
