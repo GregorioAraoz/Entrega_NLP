@@ -1,8 +1,6 @@
 import re
 import pandas as pd
 import spacy
-import sys
-import subprocess
 
 # Lazy loading setup
 _nlp_instance = None
@@ -14,21 +12,10 @@ def get_nlp():
             import es_core_news_sm
             _nlp_instance = es_core_news_sm.load()
         except ImportError:
-            print("Model not found. Installing via pip...")
             try:
-                # Install directly via pip at runtime
-                subprocess.check_call([
-                    sys.executable, "-m", "pip", "install", 
-                    "https://github.com/explosion/spacy-models/releases/download/es_core_news_sm-3.5.0/es_core_news_sm-3.5.0.tar.gz"
-                ])
-                # Re-import after install
-                import es_core_news_sm
-                import importlib
-                importlib.reload(es_core_news_sm)
-                _nlp_instance = es_core_news_sm.load()
-            except Exception as e:
-                print(f"Failed to install model: {e}")
-                raise e
+                _nlp_instance = spacy.load("es_core_news_sm")
+            except OSError:
+                raise OSError("Model 'es_core_news_sm' not found. Ensure it is in requirements.txt")
                     
     return _nlp_instance
 
