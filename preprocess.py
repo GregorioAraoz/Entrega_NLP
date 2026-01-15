@@ -1,6 +1,8 @@
 import re
 import pandas as pd
 import spacy
+import sys
+import subprocess
 
 # Lazy loading setup
 _nlp_instance = None
@@ -13,15 +15,14 @@ def get_nlp():
         except OSError:
             # Fallback only if package install failed
             print("Downloading 'es_core_news_sm' model...")
-            from spacy.cli import download
-            download("es_core_news_sm")
-            
-            # Allow time for FS update or try direct import
             try:
-                import es_core_news_sm
-                _nlp_instance = es_core_news_sm.load()
-            except ImportError:
+                subprocess.check_call([sys.executable, "-m", "spacy", "download", "es_core_news_sm"])
                 _nlp_instance = spacy.load("es_core_news_sm")
+            except Exception as e:
+                print(f"Error downloading model: {e}")
+                # If download fails, we can't do much. 
+                # Maybe return a blank model to avoid crash but results will be bad.
+                raise e
                 
     return _nlp_instance
 
