@@ -69,7 +69,7 @@ def load_resources():
     # Determine input dim from vectorizer
     if resources['vec_tfidf']:
         input_dim = len(resources['vec_tfidf'].get_feature_names_out())
-        resources['model_deep'] = load_model(input_dim, 'models/deep_mlp.pth')
+        resources['model_deep'] = load_deep_model(input_dim, 'models/deep_mlp.pth')
     else:
         resources['model_deep'] = None
         
