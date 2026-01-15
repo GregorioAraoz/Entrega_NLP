@@ -5,9 +5,8 @@ import seaborn as sns
 import torch
 import os
 from preprocess import clean_text
-from features import transform_text, load_vectorizer
-from models_baseline import BaselineMultiHead # Updated class
-from models_deep import load_model, SentimentMLP
+from features import load_vectorizer, transform_text
+from models_deep import load_model as load_deep_model
 from insights import calculate_global_score, get_top_ngrams, extract_opportunities
 
 # Page Config
