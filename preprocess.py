@@ -10,22 +10,25 @@ _nlp_instance = None
 def get_nlp():
     global _nlp_instance
     if _nlp_instance is None:
-        # Priority 1: Direct module load (best for Streamlit Cloud with requirements.txt)
         try:
             import es_core_news_sm
             _nlp_instance = es_core_news_sm.load()
         except ImportError:
-            # Priority 2: Standard spacy load
+            print("Model not found. Installing via pip...")
             try:
-                _nlp_instance = spacy.load("es_core_news_sm")
-            except OSError:
-                print("Model not found. Downloading...")
-                # Last resort download (might fail permission in Cloud)
-                try:
-                    subprocess.check_call([sys.executable, "-m", "spacy", "download", "es_core_news_sm"])
-                    _nlp_instance = spacy.load("es_core_news_sm")
-                except Exception as e:
-                    raise e
+                # Install directly via pip at runtime
+                subprocess.check_call([
+                    sys.executable, "-m", "pip", "install", 
+                    "https://github.com/explosion/spacy-models/releases/download/es_core_news_sm-3.5.0/es_core_news_sm-3.5.0.tar.gz"
+                ])
+                # Re-import after install
+                import es_core_news_sm
+                import importlib
+                importlib.reload(es_core_news_sm)
+                _nlp_instance = es_core_news_sm.load()
+            except Exception as e:
+                print(f"Failed to install model: {e}")
+                raise e
                     
     return _nlp_instance
 
