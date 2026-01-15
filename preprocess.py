@@ -2,14 +2,21 @@ import re
 import pandas as pd
 import spacy
 
-# Load SpaCy model
-try:
-    nlp = spacy.load("es_core_news_sm")
-except OSError:
-    print("Model 'es_core_news_sm' not found. Downloading...")
-    from spacy.cli import download
-    download("es_core_news_sm")
-    nlp = spacy.load("es_core_news_sm")
+# Lazy loading setup
+_nlp_instance = None
+
+def get_nlp():
+    global _nlp_instance
+    if _nlp_instance is None:
+        try:
+            _nlp_instance = spacy.load("es_core_news_sm")
+        except OSError:
+            # Fallback only if package install failed
+            print("Downloading 'es_core_news_sm' model...")
+            from spacy.cli import download
+            download("es_core_news_sm")
+            _nlp_instance = spacy.load("es_core_news_sm")
+    return _nlp_instance
 
 # Pre-defined phrase replacements for normalization
 PHRASE_MAP = {
@@ -80,6 +87,7 @@ def clean_text(text: str) -> str:
         return ""
 
     # 5. SpaCy Processing
+    nlp = get_nlp()
     doc = nlp(text)
     
     cleaned_tokens = []
